@@ -19,24 +19,26 @@ include_directories(include)
 
 ## Declare a C++ library
 add_library(
-  POL_OP
-  lib/POL_OP.cpp
-  )
-
-add_library(
   ADS122C04
   lib/ADS122C04_ADC_PI.cpp
   )
 
+add_library(
+  POL_OP
+  lib/POL_OP.cpp
+  )
+
+target_link_libraries(POL_OP
+  ADS122C04
+)
+
 add_executable(pol_op_mux src/pol_op_mux.cpp)
 ament_target_dependencies(pol_op_mux rclcpp std_msgs)
 
-# TODO: It may not work
-target_link_libraries(
-  pol_op_mux
-  ADS122C04
+target_link_libraries(pol_op_mux
   POL_OP
   stdc++fs
+  i2c
 )
 
 

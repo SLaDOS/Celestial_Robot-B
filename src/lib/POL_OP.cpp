@@ -31,7 +31,6 @@
 
 #define LOG(x) std::cout << x << std::endl;
 
-
 /**
    Constructor. Initialises both ADCs on the board.
 
