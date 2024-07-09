@@ -41,6 +41,9 @@ target_link_libraries(pol_op_mux
   i2c
 )
 
+install(TARGETS
+  pol_op_mux
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
