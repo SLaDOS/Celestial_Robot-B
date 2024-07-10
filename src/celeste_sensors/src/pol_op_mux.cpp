@@ -68,6 +68,11 @@ bool initParser(std::shared_ptr<rclcpp::Node> node, argparse::ArgumentParser &pa
     .required(false);
 
   parser.add_argument()
+    .names({"--bus"})
+    .description("Set the i2c bus number(0-1).")
+    .required(false);
+
+  parser.add_argument()
     .names({"-n","--number_of_units"})
     .description("The number of POL-OP units connected to the mux (1 - 8).")
     .required(false);
@@ -157,11 +162,17 @@ int main(int argc, char **argv){
     parser.get<int>("number_of_units") :
     1;
 
+  int i2c_bus = 
+    parser.exists("bus") ?
+    parser.get<int>("bus") :
+    1;
+    
   RCLCPP_INFO(node->get_logger(),"Gain setting: %d", pga_gain);
   RCLCPP_INFO(node->get_logger(),"Number of POL-OPs: %d", n_pol_ops);
 
   /* Initialise the mux */
-  std::string bus = "/dev/i2c-1";
+  std::string bus = "/dev/i2c-";
+  bus += std::to_string(i2c_bus);
   int fd = init_mux(bus);
 
   /*
