@@ -1,7 +1,7 @@
 /**
    \file POL_OP.cpp
    \brief Implementation of the POL_OP wrapper class for reading the polarisation 
-          opponent PCBs.
+          opponent PCBs. Modified to only read the last two photodiodes.
 
    The polarisation opponent PCBs contain two analogue-to-digital converters
    which can be read directly, however, this class was constructed to abstract
@@ -175,49 +175,6 @@ bool POL_OP::read_A2D(uint8_t idx, uint32_t* readings, uint8_t delay){
 }
 
 /**
-   Performs a full (very slow) read from the PCB.
-
-   \note The ADC encodes its output as a 16-bit signed integer which requres
-   sign extension to be represented as a standard int. This function performs
-   the required sign-extension.
-
-   \warning The working status of this function is unknown. If it does work, it
-   is guaranteed to be slow as it does not take advantage of the channel 
-   switching delays on the ADC.
-
-   \param readings A pointer to an array (size >= 4) which can hold all of the
-                   photodiode readings. The values will be placed in this array.
-   \param delay A time delay (in ms) to ensure data integrity.
-   \return true on success, false otherwise.
-*/
-bool POL_OP::read_sensor(int *readings, uint8_t delay){
-  uint32_t out_1[2];
-  uint32_t out_2[2];
-
-  bool r1 = read_A2D(0,out_1,delay);
-  bool r2 = read_A2D(1,out_2,delay);
-  if (!(r1 && r2)){
-    LOG("Error reading from one or more A2Ds.");
-    return false;
-  }
-
-  for (int i = 0; i < N_A2Ds; i++){
-    // Sign-extended readings
-    readings[i] = (((int) out_1[i]) << 16) >> 16;
-    readings[i+2] =(((int) out_2[i]) << 16) >> 16;
-  }
-  std::bitset<32> c_read = readings[0];
-  std::bitset<32> c_read_1 = readings[1];
-
-  // LOG("Reading[0]: " << c_read);
-  // LOG("Reading[1]: " << c_read_1);
-
-  // Read successful
-  return true;
-}
-
-
-/**
    Perform a full interleaved read from the PCB.
 
    This PCB read function takes advantage of the delays incurred in
@@ -245,34 +202,17 @@ bool POL_OP::read_sensor(int *readings, uint8_t delay){
    \return true on success, false otherwise
 */
 bool POL_OP::read_sensor_interleaved(int *readings, uint8_t delay){
-  uint32_t out_1[2] = {0,0};
   uint32_t out_2[2] = {0,0};
 
   int read_times[4] = {0,0,0,0};
 
   auto start = std::chrono::system_clock::now();
-  // Reads are interleaved to give the multiplexers a chance to change.
-  out_1[0] = read_continuous(A2Ds[0], delay);
+  out_2[0] = read_continuous(A2Ds[1], delay);
   auto time = std::chrono::system_clock::now() - start;
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(time);
-  read_times[0] = (int) millis.count();
-
-  A2Ds[0].setInputMultiplexer(ADS122C04_MUX_AIN2_AIN3);
-
-  start = std::chrono::system_clock::now();
-  out_2[0] = read_continuous(A2Ds[1], delay);
-  time = std::chrono::system_clock::now() - start;
-  millis = std::chrono::duration_cast<std::chrono::milliseconds>(time);
-  read_times[1] = (int) millis.count();
-
 
   A2Ds[1].setInputMultiplexer(ADS122C04_MUX_AIN2_AIN3);
-  start = std::chrono::system_clock::now();
-  out_1[1] = read_continuous(A2Ds[0], delay);
-  time = std::chrono::system_clock::now() - start;
-  millis = std::chrono::duration_cast<std::chrono::milliseconds>(time);
-  read_times[2] = (int) millis.count();
-
+  
   start = std::chrono::system_clock::now();
   out_2[1] = read_continuous(A2Ds[1], delay);
   time = std::chrono::system_clock::now() - start;
@@ -280,7 +220,6 @@ bool POL_OP::read_sensor_interleaved(int *readings, uint8_t delay){
   read_times[3] = (int) millis.count();
 
   // Reset multiplexers to starting position
-  A2Ds[0].setInputMultiplexer(ADS122C04_MUX_AIN1_AIN0);
   A2Ds[1].setInputMultiplexer(ADS122C04_MUX_AIN1_AIN0);
 
   std::stringstream ss;
@@ -302,7 +241,6 @@ bool POL_OP::read_sensor_interleaved(int *readings, uint8_t delay){
 
   for (int i = 0; i < N_A2Ds; i++){
     // Sign-extended readings
-    readings[i] = (((int) out_1[i]) << 16) >> 16;
     readings[i+2] =(((int) out_2[i]) << 16) >> 16;
   }
   std::bitset<32> c_read = readings[0];
