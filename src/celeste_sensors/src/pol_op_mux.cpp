@@ -192,7 +192,7 @@ int main(int argc, char **argv){
     std::stringstream name;
     name << "pol_op_" << i;
 
-    auto poi_pub = node->create_publisher<std_msgs::msg::Int32MultiArray>(name.str().c_str(), 1000);
+    auto poi_pub = node->create_publisher<std_msgs::msg::Int32MultiArray>(name.str().c_str(), rclcpp::SensorDataQoS());
     pubs.push_back(poi_pub);
     pol_ops.push_back(poi);
   }
