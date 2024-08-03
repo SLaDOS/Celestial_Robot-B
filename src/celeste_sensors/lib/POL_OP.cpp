@@ -36,7 +36,7 @@
 
    \param i2c_bus The string ID of the I2C bus.
    \param A2D1_addr The I2C address of the first ADC.
-   \param A2D1_addr The I2C address of the second ADC.
+   \param A2D2_addr The I2C address of the second ADC.
    \param debug Debug flag, passed to the ADC library.
    \param channel The I2C multiplexer which this unit is connected to.
 */

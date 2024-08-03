@@ -190,7 +190,13 @@ int main(int argc, char **argv){
     POL_OP poi(bus, A2D_ADDR_1, A2D_ADDR_2, false, i);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     std::stringstream name;
-    name << "pol_op_" << i;
+    
+    if (i2c_bus == 0) {
+      name << "pol_op_" << i+4;
+    }
+    else{
+      name << "pol_op_" << i;
+    };
 
     auto poi_pub = node->create_publisher<std_msgs::msg::Int32MultiArray>(name.str().c_str(), rclcpp::SensorDataQoS());
     pubs.push_back(poi_pub);
