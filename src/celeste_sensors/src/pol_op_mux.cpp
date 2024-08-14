@@ -231,7 +231,15 @@ int main(int argc, char **argv){
 
       // Min working delay = 25; 11ms was used for pol experiments
       // before this was known.
-      bool success = pol_ops[i].read_sensor_interleaved(readings, 25);
+      int delay;
+      if (i == n_pol_ops-1){
+        // The last sensor needs more delay, otherwise photodiodes' values will be the same 
+        delay = 25;
+        std::cout << "more time"<< std::endl;
+      }else{
+        delay = 11;
+      }
+      bool success = pol_ops[i].read_sensor_interleaved(readings, delay);
 
       std::vector<int> res(readings, readings+s_readings);
 
@@ -243,7 +251,6 @@ int main(int argc, char **argv){
       std::cout << "Time since last publication: " << millis.count() << "ms" << std::endl;
       pubs[i]->publish(msg);
       start = std::chrono::system_clock::now();
-      //ROS_INFO("Unit %d: {%d, %d, %d, %d}", i, res[0], res[1], res[2], res[3]);
     }
 
 

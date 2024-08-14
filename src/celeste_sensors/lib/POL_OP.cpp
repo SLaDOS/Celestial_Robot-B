@@ -207,14 +207,14 @@ bool POL_OP::read_sensor_interleaved(int *readings, uint8_t delay){
   int read_times[4] = {0,0,0,0};
 
   auto start = std::chrono::system_clock::now();
-  out_2[0] = read_continuous(A2Ds[1], delay);
+  out_2[0] = read_continuous(A2Ds[1], delay*0);
   auto time = std::chrono::system_clock::now() - start;
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(time);
 
   A2Ds[1].setInputMultiplexer(ADS122C04_MUX_AIN2_AIN3);
   
   start = std::chrono::system_clock::now();
-  out_2[1] = read_continuous(A2Ds[1], delay);
+  out_2[1] = read_continuous(A2Ds[1], delay*2);
   time = std::chrono::system_clock::now() - start;
   millis = std::chrono::duration_cast<std::chrono::milliseconds>(time);
   read_times[3] = (int) millis.count();
@@ -230,14 +230,6 @@ bool POL_OP::read_sensor_interleaved(int *readings, uint8_t delay){
     else
       ss << read_times[i] << "ms ] " << std::endl;
   }
-
-  /* Uncomment the lines below to print timing information. */
-  //  std::cout << ss.str();
-  // std::cout << "delay: "  << (int) delay << std::endl;
-  // std::cout << "o1: [" << out_1[0] << ", " << out_1[1] << "]" << std::endl;
-  // std::cout << "o2: [" << out_2[0] << ", " << out_2[1] << "]" << std::endl;
-  // std::cout << "millis: " << millis.count() << std::endl;
-
 
   for (int i = 0; i < N_A2Ds; i++){
     // Sign-extended readings
