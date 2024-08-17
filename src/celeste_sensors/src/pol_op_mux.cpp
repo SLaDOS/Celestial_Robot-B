@@ -226,7 +226,7 @@ int main(int argc, char **argv){
 
       for (int j = 0; j < s_readings; j++) readings[j] = 0; // Clear readings
       // Read from pol_op
-      select_channel(i, fd);
+      select_channel(i, fd); //This will sleep for 10 ms
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
       // Min working delay = 25; 11ms was used for pol experiments
