@@ -1,24 +1,5 @@
 /**
-   \file POL_OP.cpp
-   \brief Implementation of the POL_OP wrapper class for reading the polarisation 
-          opponent PCBs.
-
-   The polarisation opponent PCBs contain two analogue-to-digital converters
-   which can be read directly, however, this class was constructed to abstract
-   this process to a 'polarisation opponent unit' or POL_OP.
-
-   See POL_OP class documentation.
-
-   \note The ADC we use is the ADS112C04 by Texas Instruments. The
-   library for the ADC was adapted from a previous Arduino library for
-   the ADS122C04 (112 vs. 122). As a result, the device is erroneously
-   called the ADS122C04 throughout the code. I was not able to fix
-   this without introducing major changes (which invariably introduce
-   major bugs); I was worried about breaking something which I then
-   wouldn't have time to test. Please be aware of this difference
-   if you plan to modify any of the I2C libraries for this device!
-
-   \author Robert Mitchell
+Not in use. As a archive for reference of reading all four photodiodes.
 */
 
 #include "celeste_sensors/POL_OP.hpp"
