@@ -1,16 +1,15 @@
 /**
    \file pol_op_mux.cpp
-   \brief ROS node to read from the full eight-unit polarisation sensor.
+   \brief ROS node to read from half of the full eight-unit polarisation sensor.
 
    This node allows the robot to read from the polarisation array constructed
    for Gkanias et al. (2023). Each polarisation opponent unit is read in sequence
-   using the same multiplexer (TCA9548A) as in the wind sensing node
-   (i2c_mux.cpp).
+   using the multiplexer (TCA9548A).
 
    \note Each polarisation opponent unit is uses two I2C analogue to digital
-   converters (ADCs). The four photodiodes are split across the two ADCs,
-   meaning we need to read from both to read from all four photodiodes.
-   Hence, two I2C addresses for one unit.
+   converters (ADCs). The four photodiodes are split across the two ADCs, 
+   so two I2C addresses for one unit.
+   However, only the last two photodiodes on the second ADC are read.
 
    \author Robert Mitchell
 */
@@ -70,7 +69,7 @@ bool initParser(std::shared_ptr<rclcpp::Node> node, argparse::ArgumentParser &pa
   parser.add_argument()
     .names({"--bus"})
     .description("Set the i2c bus number(0-1).")
-    .required(false);
+    .required(true);
 
   parser.add_argument()
     .names({"-n","--number_of_units"})
@@ -125,7 +124,7 @@ bool select_channel(const uint8_t channel, const int fd){
   int ret = i2c_smbus_write_byte_data(fd, 0x00, (1 << channel));
   if (ret == -1) {LOG("Failed to select channel");}
   // Allow time for channel switch
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Check the datasheet for how much time. Should be some micro seconds.
 }
 
 /**
@@ -162,10 +161,7 @@ int main(int argc, char **argv){
     parser.get<int>("number_of_units") :
     1;
 
-  int i2c_bus = 
-    parser.exists("bus") ?
-    parser.get<int>("bus") :
-    1;
+  int i2c_bus = parser.get<int>("bus");
     
   RCLCPP_INFO(node->get_logger(),"Gain setting: %d", pga_gain);
   RCLCPP_INFO(node->get_logger(),"Number of POL-OPs: %d", n_pol_ops);
@@ -216,7 +212,6 @@ int main(int argc, char **argv){
      Note that the timing code and related output was used to characterise
      sensor latency and does not have any function.
   */
-  rclcpp::Rate loop_rate(10);
   auto start = std::chrono::system_clock::now();
   while(rclcpp::ok()) {
     int s_readings = 4;
@@ -226,18 +221,15 @@ int main(int argc, char **argv){
 
       for (int j = 0; j < s_readings; j++) readings[j] = 0; // Clear readings
       // Read from pol_op
-      select_channel(i, fd); //This will sleep for 10 ms
+      select_channel(i, fd); //This will sleep for some time
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-      // Min working delay = 25; 11ms was used for pol experiments
-      // before this was known.
       int delay;
       if (i == n_pol_ops-1){
         // The last sensor needs more delay, otherwise photodiodes' values will be the same 
         delay = 25;
-        std::cout << "more time"<< std::endl;
       }else{
-        delay = 11;
+        delay = 11; // Min working delay = 11ms.
       }
       bool success = pol_ops[i].read_sensor_interleaved(readings, delay);
 
@@ -258,8 +250,6 @@ int main(int argc, char **argv){
     auto full_read_millis = std::chrono::duration_cast<std::chrono::milliseconds>(full_read_time);
     std::cout << "Full read time: " << full_read_millis.count() << "ms" << std::endl;
 
-    rclcpp::spin_some(node)	;
-    loop_rate.sleep();
   }
   LOG("Exiting.");
   return 0;
