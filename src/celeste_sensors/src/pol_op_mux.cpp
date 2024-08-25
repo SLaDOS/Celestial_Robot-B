@@ -11,7 +11,9 @@
    so two I2C addresses for one unit.
    However, only the last two photodiodes on the second ADC are read.
 
-   \author Robert Mitchell
+
+   Original written by: Robert Mitchell (refmitchell)
+   Modified by: Nash Xu (SLaDOS)
 */
 
 extern "C" {

@@ -18,7 +18,8 @@
    wouldn't have time to test. Please be aware of this difference
    if you plan to modify any of the I2C libraries for this device!
 
-   \author Robert Mitchell
+   Original written by: Robert Mitchell (refmitchell)
+   Modified by: Nash Xu (SLaDOS)
 */
 
 #include "celeste_sensors/POL_OP.hpp"
